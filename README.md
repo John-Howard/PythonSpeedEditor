@@ -59,4 +59,4 @@ The authentication logic was reverse-engineered by others — this project only 
 - [@smunaut](https://github.com/smunaut/blackmagic-misc) — original protocol analysis
 - [@davidgiven](https://github.com/davidgiven/bmdkey) — documentation and tooling
 - [@Haavard15](https://github.com/Haavard15/SpeedEditorHID/tree/test) — JavaScript implementation
-- [Tractus.Hid.DaVinciSpeedEditor](https://github.com/nicktractus/Tractus.Hid.DaVinciSpeedEditor) — C# implementation this project was derived from
+- [Tractus.Hid.DaVinciSpeedEditor](https://github.com/tractusevents/Tractus.Hid.DaVinciSpeedEditor) — C# implementation this project was derived from
