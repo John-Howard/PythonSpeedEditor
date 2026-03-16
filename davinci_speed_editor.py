@@ -60,44 +60,55 @@ AUTH_ODD = [
 AUTH_MASK = 0xA79A63F585D37BF0
 
 # ── Button keycode → name mapping ──────────────────────────────────
-# Keycodes observed via the 0x04 report.  Extend as you discover more.
+# Verified keycodes from actual hardware testing.
 BUTTON_NAMES: dict[int, str] = {
-    0x0001: "CAM 1",
-    0x0002: "CAM 2",
-    0x0003: "CAM 3",
-    0x0004: "CAM 4",
-    0x0005: "CAM 5",
-    0x0006: "CAM 6",
-    0x0007: "CAM 7",
-    0x0008: "CAM 8",
-    0x0009: "CAM 9",
-    0x000A: "CLOSE UP",
-    0x000B: "CUT",
-    0x000C: "DIS",
-    0x000D: "SMTH CUT",
-    0x000E: "TRANS",           # Transition
-    0x000F: "SNAP",
-    0x0010: "LIVE O/WR",      # Live Overwrite
-    0x0011: "PLAY REV",       # Play Reverse
-    0x0012: "STOP",
-    0x0013: "PLAY FWD",       # Play Forward
-    0x0020: "SHTL",           # Shuttle
-    0x0021: "JOG",
-    0x0022: "SCRL",           # Scroll
-    0x0030: "AUDIO LEVEL",
-    0x0031: "FULL VIEW",
-    0x0032: "TRANS",           # Transition (dup addr varies by FW)
-    0x0033: "SPLIT",
-    0x0034: "ESC",
-    0x0035: "SYNC BIN",
-    0x0036: "RIP",
-    0x0037: "TRIM IN",
-    0x0038: "TRIM OUT",
-    0x0039: "ROLL",
-    0x003A: "SLIP SRC",
-    0x003B: "SLIP DEST",
-    0x003C: "SOURCE",
-    0x003D: "TIMELINE",
+    0x0001: "SMART INSRT",
+    0x0002: "APPND",
+    0x0003: "RIPL O/WR",
+    0x0004: "CLOSE UP",
+    0x0005: "PLACE ON TOP",
+    0x0006: "SRC O/WR",
+    0x0007: "IN",
+    0x0008: "OUT",
+    0x0009: "TRIM IN",
+    0x000A: "TRIM OUT",
+    0x000B: "ROLL",
+    0x000C: "SLIP SRC",
+    0x000D: "SLIP DEST",
+    0x000E: "TRANS DUR",
+    0x000F: "CUT",
+    0x0010: "DIS",
+    0x0011: "SMTH CUT",
+
+    0x001A: "SOURCE",
+    0x001B: "TIMELINE",
+
+    0x001C: "SHTL",
+    0x001D: "JOG",
+    0x001E: "SCRL",
+
+    0x001F: "SYNC BIN",
+    0x0022: "TRANS",
+    0x0025: "VIDEO ONLY",
+    0x0026: "AUDIO ONLY",
+    0x002B: "RIPL DEL",
+    0x002C: "AUDIO LEVEL",
+    0x002D: "FULL VIEW",
+    0x002E: "SNAP",
+    0x002F: "SPLIT",
+    0x0030: "LIVE O/WR",
+    0x0031: "ESC",
+
+    0x0033: "CAM 1",
+    0x0034: "CAM 2",
+    0x0035: "CAM 3",
+    0x0036: "CAM 4",
+    0x0037: "CAM 5",
+    0x0038: "CAM 6",
+    0x0039: "CAM 7",
+    0x003A: "CAM 8",
+    0x003B: "CAM 9",
+    0x003C: "STOP/PLAY",
 }
 
 
@@ -292,30 +303,61 @@ class DaVinciSpeedEditor:
         print("Authentication OK ✓")
 
     # ── LED control ────────────────────────────────────────────────
+    #
+    # Two separate LED subsystems:
+    #
+    # Report 0x02 — 18 main panel LEDs as a flat bitmask across 3 bytes:
+    #
+    #   Byte 1 (bits 0–7):
+    #     0 CLOSE_UP    1 CUT        2 DIS        3 SMTH_CUT
+    #     4 TRANS       5 SNAP       6 CAM7       7 CAM8
+    #
+    #   Byte 2 (bits 8–15):
+    #     0 CAM9        1 LIVE_OWR   2 CAM4       3 CAM5
+    #     4 CAM6        5 VIDEO_ONLY 6 CAM1       7 CAM2
+    #
+    #   Byte 3 (bits 16–17):
+    #     0 CAM3        1 AUDIO_ONLY  (bits 2–7 unused)
+    #
+    # Report 0x04 — 3 jog mode LEDs in a single byte:
+    #     0 JOG         1 SHTL       2 SCRL
 
     def set_leds(self, b1: int = 0x00, b2: int = 0x00,
                  b3: int = 0x00, b4: int = 0x00) -> None:
         """
-        Set LED state.  The Speed Editor has ~18 LEDs mapped across
-        four bytes (report id 0x02).  Each bit toggles one LED.
+        Set main panel LEDs (report 0x02).
 
-        Parameters are raw bitmask bytes; pass 0xFF to turn everything on.
+        18 LEDs mapped as a bitmask across bytes 1–3 (byte 4 is padding).
         """
         self._write(bytes([0x02, b1 & 0xFF, b2 & 0xFF,
                            b3 & 0xFF, b4 & 0xFF]))
 
+    def set_jog_leds(self, jog: bool = False, shtl: bool = False,
+                     scrl: bool = False) -> None:
+        """
+        Set jog mode LEDs (report 0x04).
+
+        These are on a separate output report from the main panel LEDs.
+        """
+        val = (int(jog) << 0) | (int(shtl) << 1) | (int(scrl) << 2)
+        self._write(bytes([0x04, val & 0xFF]))
+
     def all_leds_on(self) -> None:
         self.set_leds(0xFF, 0xFF, 0xFF, 0xFF)
+        self.set_jog_leds(True, True, True)
 
     def all_leds_off(self) -> None:
         self.set_leds(0x00, 0x00, 0x00, 0x00)
+        self.set_jog_leds(False, False, False)
 
     # ── initialization reports ─────────────────────────────────────
 
     def init_reports(self) -> None:
-        """Send the post-auth initialisation reports seen in the C# code."""
+        """Send the post-auth initialisation reports."""
+        # Report 0x03: set jog wheel mode to 0 (relative)
         self._write(bytes([0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-        self._write(bytes([0x04, 0xFF]))
+        # Report 0x04: jog mode LEDs — turn all on as visual confirmation
+        self.set_jog_leds(True, True, True)
 
     # ── input processing ───────────────────────────────────────────
 
@@ -359,31 +401,58 @@ class DaVinciSpeedEditor:
     # ── high-level loops ───────────────────────────────────────────
 
     def read_loop(self) -> None:
-        """Block forever, printing decoded input reports."""
+        """Block forever, printing decoded input reports.
+
+        Uses a short read timeout so that KeyboardInterrupt (Ctrl-C)
+        can be delivered between iterations — a fully blocking read
+        sits inside C code where Python signals are deferred.
+        """
         print("\nListening for input — press Ctrl-C to quit.\n")
-        try:
-            while True:
-                data = self._read(64)
-                if data:
-                    self.process_packet(data)
-        except KeyboardInterrupt:
-            print("\nStopped.")
+        while True:
+            data = self._read(64, timeout_ms=100)
+            if data:
+                self.process_packet(data)
 
     def led_chase_demo(self) -> None:
         """
-        Walk each bit across the four LED-control bytes so you can
-        see which physical LED maps to which bit position.
+        Walk each bit across both LED subsystems so you can verify
+        which physical LED maps to which bit position.
         """
-        print("\nLED chase demo — watch the panel …\n")
-        for byte_index in range(4):
-            for bit in range(8):
-                vals = [0, 0, 0, 0]
-                vals[byte_index] = 1 << bit
-                label = f"byte[{byte_index + 1}] bit {bit}"
-                print(f"  LED  {label:18s}  → {vals}")
-                self.set_leds(*vals)
-                time.sleep(0.25)
-        self.all_leds_off()
+        # Main panel LEDs — report 0x02, 18 bits across 3 bytes
+        MAIN_LED_NAMES = [
+            # Byte 1 (bits 0–7)
+            "CLOSE_UP", "CUT", "DIS", "SMTH_CUT",
+            "TRANS", "SNAP", "CAM7", "CAM8",
+            # Byte 2 (bits 8–15)
+            "CAM9", "LIVE_OWR", "CAM4", "CAM5",
+            "CAM6", "VIDEO_ONLY", "CAM1", "CAM2",
+            # Byte 3 (bits 16–17)
+            "CAM3", "AUDIO_ONLY",
+        ]
+
+        print("\nLED chase — main panel (report 0x02) …\n")
+        self.set_jog_leds(False, False, False)
+        for i, name in enumerate(MAIN_LED_NAMES):
+            byte_idx = i // 8
+            bit = i % 8
+            vals = [0, 0, 0, 0]
+            vals[byte_idx] = 1 << bit
+            print(f"  LED  byte[{byte_idx + 1}] bit {bit}  {name:14s}  → {vals}")
+            self.set_leds(*vals)
+            time.sleep(1.5)
+        self.set_leds(0, 0, 0, 0)
+
+        # Jog mode LEDs — report 0x04, 3 bits
+        JOG_LED_NAMES = ["JOG", "SHTL", "SCRL"]
+        print("\nLED chase — jog mode (report 0x04) …\n")
+        for i, name in enumerate(JOG_LED_NAMES):
+            print(f"  LED  jog bit {i}  {name}")
+            self.set_jog_leds(
+                jog=(i == 0), shtl=(i == 1), scrl=(i == 2),
+            )
+            time.sleep(2.0)
+        self.set_jog_leds(False, False, False)
+
         print("  LED chase complete.\n")
 
 
@@ -454,6 +523,8 @@ def main() -> None:
 
         editor.read_loop()
 
+    except KeyboardInterrupt:
+        print("\nShutting down.")
     except OSError as exc:
         sys.exit(f"HID error: {exc}")
     except RuntimeError as exc:
