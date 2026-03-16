@@ -1,0 +1,41 @@
+# sdrpp_bridge config
+# ───────────────────
+
+sdrpp:
+  host: 127.0.0.1
+  port: 4532
+
+# Step sizes per jog wheel mode (Hz per detent tick)
+tuning:
+  jog_hz: 1000
+  shuttle_hz: 25000
+  scroll_hz: 100000
+  snap_grid_hz: 5000       # SNAP rounds to nearest multiple of this
+
+# Demod modes to cycle through with TRANS button
+modes:
+  - { name: WFM,  passband: 200000 }
+  - { name: FM,   passband: 12500 }
+  - { name: AM,   passband: 10000 }
+  - { name: USB,  passband: 3000 }
+  - { name: LSB,  passband: 3000 }
+  - { name: CW,   passband: 500 }
+  - { name: DSB,  passband: 6000 }
+  - { name: RAW,  passband: 0 }
+
+# CAM 1–9 preset frequencies
+presets:
+  1: { freq:  88100000, mode: WFM,  passband: 200000, label: "FM Broadcast" }
+  2: { freq: 121500000, mode: AM,   passband: 10000,  label: "Air Guard" }
+  3: { freq: 144390000, mode: FM,   passband: 12500,  label: "APRS 2m" }
+  4: { freq: 145800000, mode: FM,   passband: 12500,  label: "ISS Downlink" }
+  5: { freq: 162550000, mode: FM,   passband: 12500,  label: "NOAA Weather" }
+  6: { freq: 433920000, mode: FM,   passband: 12500,  label: "ISM 433" }
+  7: { freq: 462562500, mode: FM,   passband: 12500,  label: "FRS Ch 1" }
+  8: { freq: 1090000000, mode: RAW, passband: 0,      label: "ADS-B" }
+  9: { freq: 137100000, mode: FM,   passband: 12500,  label: "NOAA APT" }
+
+# Scanner settings (PLAY FWD / PLAY REV)
+scan:
+  step_hz: 25000
+  dwell_ms: 300
