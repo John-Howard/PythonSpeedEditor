@@ -209,44 +209,48 @@ def load_config(path: pathlib.Path | None) -> Config:
 
 # ── LED mapping ────────────────────────────────────────────────────
 #
-# Two LED subsystems on the Speed Editor:
+# The Speed Editor has ~18 LEDs controlled by 4 bitmask bytes in
+# report 0x02.  The mapping below is a best guess — run the driver
+# with --demo to chase each bit and fill in the correct positions
+# for your unit.
 #
-# Report 0x02 — 18 main panel LEDs as a flat 18-bit bitmask:
-#   Byte 1 bits 0–7:  CLOSE_UP CUT DIS SMTH_CUT TRANS SNAP CAM7 CAM8
-#   Byte 2 bits 0–7:  CAM9 LIVE_OWR CAM4 CAM5 CAM6 VIDEO_ONLY CAM1 CAM2
-#   Byte 3 bits 0–1:  CAM3 AUDIO_ONLY
-#
-# Report 0x04 — 3 jog mode LEDs in a single byte:
-#   Bit 0: JOG   Bit 1: SHTL   Bit 2: SCRL
+# Format:  name → (byte_index 0–3, bit 0–7)
 
-# Main panel LED → (byte_index 0–3, bit 0–7) for report 0x02
-MAIN_LED: dict[str, tuple[int, int]] = {
-    "CLOSE_UP":    (0, 0),
-    "CUT":         (0, 1),
-    "DIS":         (0, 2),
-    "SMTH_CUT":    (0, 3),
-    "TRANS":       (0, 4),
-    "SNAP":        (0, 5),
-    "CAM7":        (0, 6),
-    "CAM8":        (0, 7),
-    "CAM9":        (1, 0),
-    "LIVE_OWR":    (1, 1),
-    "CAM4":        (1, 2),
-    "CAM5":        (1, 3),
-    "CAM6":        (1, 4),
-    "VIDEO_ONLY":  (1, 5),
-    "CAM1":        (1, 6),
-    "CAM2":        (1, 7),
-    "CAM3":        (2, 0),
-    "AUDIO_ONLY":  (2, 1),
+LED_MAP: dict[str, tuple[int, int]] = {
+    # Byte 0 — camera / source row (guesses — calibrate with --demo)
+    "CAM1":       (0, 0),
+    "CAM2":       (0, 1),
+    "CAM3":       (0, 2),
+    "CAM4":       (0, 3),
+    "CAM5":       (0, 4),
+    "CAM6":       (0, 5),
+    "CAM7":       (0, 6),
+    "CAM8":       (0, 7),
+    # Byte 1
+    "CAM9":       (1, 0),
+    "LIVE_OWR":   (1, 1),
+    "CUT":        (1, 2),
+    "DIS":        (1, 3),
+    "SMTH_CUT":   (1, 4),
+    "TRANS":      (1, 5),
+    # Byte 2 — transport / mode row
+    "PLAY_REV":   (2, 0),
+    "STOP":       (2, 1),
+    "PLAY_FWD":   (2, 2),
+    "SHTL":       (2, 3),
+    "JOG":        (2, 4),
+    "SCRL":       (2, 5),
+    # Byte 3 — bottom row
+    "AUDIO_ONLY": (2, 6),
+    "SNAP":       (2, 7),
 }
 
 
-def main_leds_from_names(names: set[str]) -> tuple[int, int, int, int]:
-    """Convert a set of main LED names to the 4-byte bitmask for report 0x02."""
+def leds_from_names(names: set[str]) -> tuple[int, int, int, int]:
+    """Convert a set of LED names to the 4-byte bitmask."""
     b = [0, 0, 0, 0]
     for name in names:
-        pos = MAIN_LED.get(name)
+        pos = LED_MAP.get(name)
         if pos:
             byte_idx, bit = pos
             b[byte_idx] |= 1 << bit
@@ -263,27 +267,25 @@ SCAN_OFF = 0
 SCAN_FWD = 1
 SCAN_REV = -1
 
-# Keycode constants (verified from hardware)
-KC_CAM1       = 0x0033
-KC_CAM9       = 0x003B
-KC_SHTL       = 0x001C
-KC_JOG        = 0x001D
-KC_SCRL       = 0x001E
-KC_TRANS      = 0x0022
-KC_SNAP       = 0x002E
-KC_ESC        = 0x0031
-KC_TRIM_IN    = 0x0009
-KC_TRIM_OUT   = 0x000A
-KC_STOP_PLAY  = 0x003C
-KC_SOURCE     = 0x001A   # scan reverse
-KC_TIMELINE   = 0x001B   # scan forward
-KC_LIVE_OWR   = 0x0030
-KC_CUT        = 0x000F
-KC_DIS        = 0x0010
-KC_SMTH_CUT   = 0x0011
-KC_SPLIT      = 0x002F
-KC_IN         = 0x0007
-KC_OUT        = 0x0008
+# Keycode constants for buttons we handle
+KC_CAM1     = 0x0001
+KC_CAM9     = 0x0009
+KC_CLOSE_UP = 0x000A
+KC_CUT      = 0x000B
+KC_DIS      = 0x000C
+KC_SMTH_CUT = 0x000D
+KC_TRANS    = 0x000E
+KC_SNAP     = 0x000F
+KC_LIVE_OWR = 0x0010
+KC_PLAY_REV = 0x0011
+KC_STOP     = 0x0012
+KC_PLAY_FWD = 0x0013
+KC_SHTL     = 0x0020
+KC_JOG      = 0x0021
+KC_SCRL     = 0x0022
+KC_TRIM_IN  = 0x0037
+KC_TRIM_OUT = 0x0038
+KC_ESC      = 0x0034
 
 
 @dataclass
@@ -420,27 +422,21 @@ class Bridge:
             self._set_mode(self.state.mode, new_pb)
             self._log(f"Passband → {new_pb} Hz")
 
-        # ── TIMELINE / SOURCE: start scan fwd / rev ──────────────
-        elif kc == KC_TIMELINE:
+        # ── PLAY FWD / REV: start scan ───────────────────────────
+        elif kc == KC_PLAY_FWD:
             self.state.scan_dir = SCAN_FWD
             self.state.scan_next_time = time.monotonic()
             self._log("Scan ▶ forward")
-        elif kc == KC_SOURCE:
+        elif kc == KC_PLAY_REV:
             self.state.scan_dir = SCAN_REV
             self.state.scan_next_time = time.monotonic()
             self._log("Scan ◀ reverse")
 
-        # ── STOP/PLAY: toggle scan off ────────────────────────────
-        elif kc == KC_STOP_PLAY:
+        # ── STOP: halt scan ──────────────────────────────────────
+        elif kc == KC_STOP:
             if self.state.scan_dir != SCAN_OFF:
                 self.state.scan_dir = SCAN_OFF
                 self._log("Scan ⏹ stopped")
-
-        # ── IN / OUT: bookmark current freq (log only for now) ───
-        elif kc == KC_IN:
-            self._log(f"Mark IN  @ {self._fmt_freq(self.state.freq)}")
-        elif kc == KC_OUT:
-            self._log(f"Mark OUT @ {self._fmt_freq(self.state.freq)}")
 
     # ── scanning ──────────────────────────────────────────────────
 
@@ -460,33 +456,25 @@ class Bridge:
 
     def update_leds(self) -> None:
         """Set Speed Editor LEDs to reflect current state."""
-
-        # ── Main panel LEDs (report 0x02) ─────────────────────────
         lit: set[str] = set()
 
-        # Active preset → light that CAM button
+        # Active preset
         if 1 <= self.state.active_preset <= 9:
             lit.add(f"CAM{self.state.active_preset}")
 
-        # Show current transition style
-        lit.add("CUT")  # always indicate active — swap for DIS/SMTH_CUT
+        # Wheel mode
+        lit.add({
+            WHEEL_JOG: "JOG", WHEEL_SHUTTLE: "SHTL", WHEEL_SCROLL: "SCRL",
+        }.get(self.state.wheel_mode, "JOG"))
 
-        # SNAP on when freq is grid-aligned
-        if self.cfg.snap_grid_hz and self.state.freq % self.cfg.snap_grid_hz == 0:
-            lit.add("SNAP")
+        # Scan direction
+        if self.state.scan_dir == SCAN_FWD:
+            lit.add("PLAY_FWD")
+        elif self.state.scan_dir == SCAN_REV:
+            lit.add("PLAY_REV")
 
-        # TRANS on when mode cycling is available
-        lit.add("TRANS")
-
-        b1, b2, b3, b4 = main_leds_from_names(lit)
+        b1, b2, b3, b4 = leds_from_names(lit)
         self.editor.set_leds(b1, b2, b3, b4)
-
-        # ── Jog mode LEDs (report 0x04) ──────────────────────────
-        self.editor.set_jog_leds(
-            jog=(self.state.wheel_mode == WHEEL_JOG),
-            shtl=(self.state.wheel_mode == WHEEL_SHUTTLE),
-            scrl=(self.state.wheel_mode == WHEEL_SCROLL),
-        )
 
     # ── helpers ───────────────────────────────────────────────────
 
@@ -581,11 +569,9 @@ def main() -> None:
         print("  TRANS           Cycle demod mode")
         print("  SNAP            Round frequency to grid")
         print("  TRIM IN/OUT     Adjust passband ±500 Hz")
-        print("  TIMELINE        Scan forward")
-        print("  SOURCE          Scan reverse")
-        print("  STOP/PLAY       Stop scanning")
+        print("  PLAY ▶/◀        Scan forward/reverse")
+        print("  STOP            Stop scanning")
         print("  ESC             Recall previous frequency")
-        print("  IN / OUT        Mark frequency (log only)")
         print()
         print("Listening — press Ctrl-C to quit.\n")
 
