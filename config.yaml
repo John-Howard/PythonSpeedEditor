@@ -2,12 +2,12 @@
 # ───────────────────
 
 sdrpp:
-  host: 127.0.0.1
+  host: 192.168.1.139
   port: 4532
 
 # Step sizes per jog wheel mode (Hz per detent tick)
 tuning:
-  jog_hz: 1000
+  jog_hz: 1
   shuttle_hz: 25000
   scroll_hz: 100000
   snap_grid_hz: 5000       # SNAP rounds to nearest multiple of this
