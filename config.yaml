@@ -2,12 +2,12 @@
 # ───────────────────
 
 sdrpp:
-  host: 192.168.1.139
+  host: 127.0.0.1
   port: 4532
 
 # Step sizes per jog wheel mode (Hz per detent tick)
 tuning:
-  jog_hz: 1
+  jog_hz: 1000
   shuttle_hz: 25000
   scroll_hz: 100000
   snap_grid_hz: 5000       # SNAP rounds to nearest multiple of this
@@ -35,7 +35,7 @@ presets:
   8: { freq: 1090000000, mode: RAW, passband: 0,      label: "ADS-B" }
   9: { freq: 137100000, mode: FM,   passband: 12500,  label: "NOAA APT" }
 
-# Scanner settings (PLAY FWD / PLAY REV)
+# Scanner settings (TIMELINE / SOURCE / STOP/PLAY)
 scan:
   step_hz: 25000
   dwell_ms: 300
