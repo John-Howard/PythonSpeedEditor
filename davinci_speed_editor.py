@@ -25,7 +25,6 @@ Usage
     uv run davinci_speed_editor.py --scan     # just scan for the device
 """
 
-import argparse
 import struct
 import sys
 import time
@@ -33,11 +32,24 @@ from dataclasses import dataclass
 
 try:
     import hid  # cython-hidapi  (provided by 'hidapi' on PyPI)
-except ImportError:
-    sys.exit(
-        "ERROR: 'hid' module not found.\n"
-        "Run this script with:  uv run davinci_speed_editor.py"
-    )
+except ImportError as _exc:
+    raise ImportError(
+        "'hid' module not found. Install it with: pip install hidapi"
+    ) from _exc
+
+
+# ── Public API ─────────────────────────────────────────────────────
+
+__all__ = [
+    "VENDOR_ID",
+    "PRODUCT_ID",
+    "BUTTON_NAMES",
+    "WheelEvent",
+    "ButtonEvent",
+    "UnknownEvent",
+    "DaVinciSpeedEditor",
+    "scan_for_device",
+]
 
 
 # ── Device identifiers ──────────────────────────────────────────────
@@ -478,6 +490,8 @@ def scan_for_device() -> bool:
 # ── CLI entry point ─────────────────────────────────────────────────
 
 def main() -> None:
+    import argparse
+
     parser = argparse.ArgumentParser(
         description="DaVinci Speed Editor — Python HID test wrapper"
     )
