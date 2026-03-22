@@ -30,6 +30,13 @@ The Speed Editor is a USB HID controller with a weighted jog wheel, shuttle ring
 - **Dry-run mode** — test the full mapping logic without SDR++ connected
 - **YAML configuration** — presets, step sizes, mode list, scan parameters all configurable
 
+### Native C++ SDR++ Plugin (`plugin/`)
+
+- **Out-of-tree `misc_module`** — builds against an existing SDR++ source tree (Linux)
+- **Direct API access** — waterfall zoom/pan, gain, bandwidth, recording, VFO management
+- **Full HID driver in C++** — authentication, jog wheel, buttons, and LED control without Python
+- **See [Button layout guide](docs/speed_editor_guides.html)** for a visual reference of all control mappings
+
 ## Requirements
 
 - Python ≥ 3.14
@@ -132,8 +139,10 @@ config.yaml                 Default presets, step sizes, mode list
 plugin/                     Native C++ SDR++ plugin (out-of-tree build)
   CMakeLists.txt            Out-of-tree cmake config
   src/                      Plugin source (HID driver, key map, main module)
-PLAN-sdrpp-speed-editor.md  Phase 1 bridge design + overall architecture
-PLAN-native-plugin.md       Phase 2 native C++ plugin detailed plan
+docs/
+  PLAN-sdrpp-speed-editor.md  Phase 1 bridge design + overall architecture
+  PLAN-native-plugin.md       Phase 2 native C++ plugin detailed plan
+  speed_editor_guides.html    Visual button layout reference
 README.md                   This file
 LICENSE.txt                 BSD 3-Clause
 ```
@@ -146,7 +155,7 @@ LICENSE.txt                 BSD 3-Clause
 | SDR++ rigctl bridge | ✅ Done | Python daemon maps Speed Editor → SDR++ via rigctl TCP |
 | Native C++ plugin (Linux) | ✅ Done | `misc_module` for waterfall zoom/pan, gain, bandwidth, recording, VFO management |
 
-The native plugin will unlock everything rigctl can't reach — waterfall control, direct VFO bandwidth, source start/stop, recording, squelch, volume, and full LED feedback from live SDR++ state. See [PLAN-native-plugin.md](PLAN-native-plugin.md) for the detailed design.
+The native plugin unlocks everything rigctl can't reach — waterfall control, direct VFO bandwidth, source start/stop, recording, squelch, volume, and full LED feedback from live SDR++ state. See [PLAN-native-plugin.md](docs/PLAN-native-plugin.md) for the detailed design.
 
 ## Building the native plugin
 
@@ -191,7 +200,7 @@ cp plugin/build/speed_editor_ctrl.so ~/.config/sdrpp/modules/
 
 Then restart SDR++ and load `speed_editor_ctrl` from **Module Manager**.
 
-See [PLAN-native-plugin.md](PLAN-native-plugin.md) for the detailed plugin design and development milestones.
+See [PLAN-native-plugin.md](docs/PLAN-native-plugin.md) for the detailed plugin design and development milestones.
 
 ## License
 
