@@ -144,7 +144,7 @@ LICENSE.txt                 BSD 3-Clause
 |---|---|---|
 | HID driver | ✅ Done | Auth, read, LEDs, structured events, verified keycodes |
 | SDR++ rigctl bridge | ✅ Done | Python daemon maps Speed Editor → SDR++ via rigctl TCP |
-| Native C++ plugin | ✅ Done | `misc_module` for waterfall zoom/pan, gain, bandwidth, recording, VFO management |
+| Native C++ plugin (Linux) | ✅ Done | `misc_module` for waterfall zoom/pan, gain, bandwidth, recording, VFO management |
 
 The native plugin will unlock everything rigctl can't reach — waterfall control, direct VFO bandwidth, source start/stop, recording, squelch, volume, and full LED feedback from live SDR++ state. See [PLAN-native-plugin.md](PLAN-native-plugin.md) for the detailed design.
 
