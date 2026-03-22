@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speed Editor → SDR++ Button Guides</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0e1117;
+    --surface: #1a1e28;
+    --panel: #232836;
+    --border: #2e3446;
+    --text: #e4e8f0;
+    --text-dim: #7c849a;
+    --accent: #6c8cff;
+
+    /* Category colours */
+    --cat-tune: #4ecdc4;
+    --cat-preset: #f7b731;
+    --cat-scan: #fc5c65;
+    --cat-mode: #a55eea;
+    --cat-view: #26de81;
+    --cat-record: #fd9644;
+    --cat-vfo: #45aaf2;
+    --cat-reserved: #3e4458;
+    --cat-modifier: #eb3b5a;
+    --cat-unused: #2a2e3a;
+
+    /* Key surface */
+    --key-bg: #2c3040;
+    --key-border: #444a5e;
+    --key-hover: #3a4058;
+    --key-white-bg: #c8ccd6;
+    --key-white-border: #a0a6b4;
+    --key-red-bg: #7a2832;
+    --key-red-border: #9e3540;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ─────────────────────────────────── */
+  .header {
+    text-align: center;
+    padding: 40px 20px 20px;
+  }
+  .header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .header h1 span { color: var(--accent); }
+  .header p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  /* ── Tabs ───────────────────────────────────── */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 24px auto 32px;
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 4px;
+    width: fit-content;
+  }
+  .tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* ── Panel Container ────────────────────────── */
+  .guide-panel { display: none; }
+  .guide-panel.active { display: block; }
+
+  .guide-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+  }
+
+  .panel-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .panel-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  /* ── Editor Housing ─────────────────────────── */
+  .editor-housing {
+    background: linear-gradient(145deg, #3a3f50, #2a2e3c);
+    border-radius: 18px;
+    padding: 28px 32px 32px;
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .editor-housing::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
+
+  .editor-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .editor-label-right {
+    position: absolute;
+    top: 28px;
+    right: 32px;
+  }
+
+  /* ── Layout Grid ────────────────────────────── */
+  .editor-grid {
+    display: grid;
+    grid-template-columns: 210px 280px 170px 200px;
+    grid-template-rows: auto auto;
+    gap: 14px 18px;
+  }
+
+  .section {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* ── Key Base ───────────────────────────────── */
+  .key {
+    position: relative;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    transition: all 0.15s ease;
+    border: 1px solid var(--key-border);
+    background: var(--key-bg);
+  }
+  .key:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .key-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+  }
+  .key-sublabel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.42rem;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    margin-top: 1px;
+  }
+
+  /* SDR function label */
+  .sdr-func {
+    position: absolute;
+    bottom: -1px;
+    left: -1px;
+    right: -1px;
+    border-radius: 0 0 4px 4px;
+    padding: 2px 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.44rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  /* Category-coloured top border glow */
+  .key[data-cat="tune"]     { border-top: 2px solid var(--cat-tune); }
+  .key[data-cat="preset"]   { border-top: 2px solid var(--cat-preset); }
+  .key[data-cat="scan"]     { border-top: 2px solid var(--cat-scan); }
+  .key[data-cat="mode"]     { border-top: 2px solid var(--cat-mode); }
+  .key[data-cat="view"]     { border-top: 2px solid var(--cat-view); }
+  .key[data-cat="record"]   { border-top: 2px solid var(--cat-record); }
+  .key[data-cat="vfo"]      { border-top: 2px solid var(--cat-vfo); }
+  .key[data-cat="modifier"] { border-top: 2px solid var(--cat-modifier); }
+  .key[data-cat="reserved"] { border-top: 2px solid var(--cat-reserved); opacity: 0.5; }
+  .key[data-cat="unused"]   { border-top: 2px solid var(--cat-unused); opacity: 0.35; }
+
+  .key[data-cat="tune"]     .sdr-func { background: var(--cat-tune); }
+  .key[data-cat="preset"]   .sdr-func { background: var(--cat-preset); color: #1a1e28; }
+  .key[data-cat="scan"]     .sdr-func { background: var(--cat-scan); }
+  .key[data-cat="mode"]     .sdr-func { background: var(--cat-mode); }
+  .key[data-cat="view"]     .sdr-func { background: var(--cat-view); color: #1a1e28; }
+  .key[data-cat="record"]   .sdr-func { background: var(--cat-record); color: #1a1e28; }
+  .key[data-cat="vfo"]      .sdr-func { background: var(--cat-vfo); }
+  .key[data-cat="modifier"] .sdr-func { background: var(--cat-modifier); }
+  .key[data-cat="reserved"] .sdr-func { background: var(--cat-reserved); color: rgba(255,255,255,0.4); }
+  .key[data-cat="unused"]   .sdr-func { background: var(--cat-unused); color: rgba(255,255,255,0.3); }
+
+  /* White keys */
+  .key.white-key {
+    background: var(--key-white-bg);
+    border-color: var(--key-white-border);
+  }
+  .key.white-key .key-label { color: #1a1e28; }
+  .key.white-key .key-sublabel { color: rgba(0,0,0,0.4); }
+
+  /* Red key */
+  .key.red-key {
+    background: var(--key-red-bg);
+    border-color: var(--key-red-border);
+  }
+
+  /* ── Section grids ──────────────────────────── */
+
+  /* Top-left 3×4 edit section */
+  .section-edit {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .section-edit .key-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .section-edit .key { height: 40px; }
+
+  /* Bottom-left IN/OUT */
+  .section-io {
+    grid-row: 2;
+    grid-column: 1;
+  }
+  .section-io .key-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .section-io .key { height: 46px; }
+
+  /* Top centre ESC row + TRANS row */
+  .section-centre-top {
+    grid-row: 1;
+    grid-column: 2;
+  }
+  .section-centre-top .key-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .section-centre-top .key { height: 40px; }
+
+  /* CAM grid + STOP/PLAY */
+  .section-cam {
+    grid-row: 2;
+    grid-column: 2;
+  }
+  .section-cam .cam-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .section-cam .key { height: 40px; }
+  .section-cam .stop-play {
+    margin-top: 4px;
+  }
+  .section-cam .stop-play .key {
+    width: 100%;
+    height: 36px;
+  }
+
+  /* Right side: SOURCE/TIMELINE + jog mode + wheel */
+  .section-right {
+    grid-row: 1 / 3;
+    grid-column: 3 / 5;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .source-timeline-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .source-timeline-row .key { height: 46px; }
+
+  .jog-mode-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .jog-mode-row .key { height: 40px; }
+
+  .jog-wheel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+  }
+  .wheel-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #555a6a, #2a2e3c 70%);
+    border: 3px solid #444a5e;
+    box-shadow:
+      0 8px 30px rgba(0,0,0,0.5),
+      inset 0 2px 8px rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .wheel-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    line-height: 1.4;
+  }
+  .wheel-func {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: var(--cat-tune);
+    text-align: center;
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* ── Legend ──────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    justify-content: center;
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--surface);
+    border-radius: 10px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ── Tooltip ────────────────────────────────── */
+  .key[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1e28;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.68rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 100;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    pointer-events: none;
+  }
+
+  /* ── Comparison Table ───────────────────────── */
+  .comparison {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+  .comparison h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .comp-table th {
+    background: var(--panel);
+    color: var(--text-dim);
+    font-weight: 600;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+  }
+  .comp-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .comp-table tr:hover td { background: rgba(108,140,255,0.04); }
+  .comp-table .yes { color: var(--cat-tune); }
+  .comp-table .no  { color: var(--cat-scan); opacity: 0.6; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .editor-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+    }
+    .section-right { grid-column: 1; grid-row: auto; }
+    .editor-housing { padding: 16px; }
+  }
+
+  /* Print-friendly */
+  @media print {
+    body { background: #fff; color: #111; }
+    .tabs { display: none; }
+    .guide-panel { display: block !important; page-break-after: always; }
+    .editor-housing { box-shadow: none; border: 2px solid #ccc; background: #e8e8e8; }
+    .key { border: 1px solid #999 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Speed Editor <span>→</span> SDR++ Button Guides</h1>
+  <p>Blackmagic DaVinci Speed Editor — SDR++ function mappings</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('python')">Python Bridge</button>
+  <button class="tab" onclick="switchTab('native')">C++ Native Plugin</button>
+</div>
+
+<!-- ================================================================== -->
+<!-- PYTHON BRIDGE GUIDE                                                -->
+<!-- ================================================================== -->
+<div id="panel-python" class="guide-panel active">
+<div class="guide-wrapper">
+  <div class="panel-title">sdrpp_bridge.py — rigctl TCP Protocol</div>
+  <div class="panel-subtitle">Limited to frequency, mode, and passband control via hamlib-compatible commands</div>
+
+  <div class="editor-housing">
+    <div class="editor-label">DAVINCI RESOLVE SPEED EDITOR</div>
+    <div class="editor-label editor-label-right">Blackmagic</div>
+
+    <div class="editor-grid">
+
+      <!-- ── Top-left edit block ────────────────── -->
+      <div class="section section-edit">
+        <div class="key-grid">
+          <div class="key" data-cat="unused"><div class="key-label">SMART<br>INSRT</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">APPND</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">RIPL<br>O/WR</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">CLOSE<br>UP</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">PLACE<br>ON TOP</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SRC<br>O/WR</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="mode" data-tip="Adjust passband −500 Hz"><div class="key-label">TRIM<br>IN</div><div class="key-sublabel">CLR</div><div class="sdr-func">BW −500</div></div>
+          <div class="key" data-cat="mode" data-tip="Adjust passband +500 Hz"><div class="key-label">TRIM<br>OUT</div><div class="key-sublabel">CLR</div><div class="sdr-func">BW +500</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">ROLL</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SLIP<br>SRC</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SLIP<br>DEST</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">TRANS<br>DUR</div><div class="key-sublabel">SLIDE</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">CUT</div><div class="key-sublabel">SET</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">DIS</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SMTH<br>CUT</div><div class="sdr-func">—</div></div>
+        </div>
+      </div>
+
+      <!-- ── Bottom-left IN / OUT ───────────────── -->
+      <div class="section section-io">
+        <div class="key-grid">
+          <div class="key white-key" data-cat="scan" data-tip="Mark frequency (log to console)"><div class="key-label">IN</div><div class="sdr-func">Mark freq</div></div>
+          <div class="key white-key" data-cat="scan" data-tip="Mark frequency (log to console)"><div class="key-label">OUT</div><div class="sdr-func">Mark freq</div></div>
+        </div>
+      </div>
+
+      <!-- ── Top centre: ESC row + TRANS row ────── -->
+      <div class="section section-centre-top">
+        <div class="key-grid">
+          <div class="key" data-cat="tune" data-tip="Recall previous frequency"><div class="key-label">ESC</div><div class="key-sublabel">UNDO</div><div class="sdr-func">Recall freq</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SYNC<br>BIN</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">AUDIO<br>LEVEL</div><div class="key-sublabel">MARK</div><div class="sdr-func">—</div></div>
+          <div class="key red-key" data-cat="unused"><div class="key-label">FULL<br>VIEW</div><div class="key-sublabel">RVW</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="mode" data-tip="Cycle: WFM→FM→AM→USB→LSB→CW→DSB→RAW"><div class="key-label">TRANS</div><div class="key-sublabel">TITLE</div><div class="sdr-func">Cycle mode</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SPLIT</div><div class="key-sublabel">MOVE</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="tune" data-tip="Round freq to nearest grid step"><div class="key-label">SNAP</div><div class="sdr-func">Snap grid</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">RIPL<br>DEL</div><div class="sdr-func">—</div></div>
+        </div>
+      </div>
+
+      <!-- ── CAM grid + STOP/PLAY ───────────────── -->
+      <div class="section section-cam">
+        <div class="cam-grid">
+          <div class="key" data-cat="preset" data-tip="FRS Ch 1 — 462.5625 MHz FM"><div class="key-label">CAM<br>7</div><div class="sdr-func">Preset 7</div></div>
+          <div class="key" data-cat="preset" data-tip="ADS-B — 1090 MHz RAW"><div class="key-label">CAM<br>8</div><div class="sdr-func">Preset 8</div></div>
+          <div class="key" data-cat="preset" data-tip="NOAA APT — 137.1 MHz FM"><div class="key-label">CAM<br>9</div><div class="sdr-func">Preset 9</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">LIVE<br>O/WR</div><div class="key-sublabel">RND</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="preset" data-tip="ISS Downlink — 145.8 MHz FM"><div class="key-label">CAM<br>4</div><div class="sdr-func">Preset 4</div></div>
+          <div class="key" data-cat="preset" data-tip="NOAA Weather — 162.55 MHz FM"><div class="key-label">CAM<br>5</div><div class="sdr-func">Preset 5</div></div>
+          <div class="key" data-cat="preset" data-tip="ISM 433 — 433.92 MHz FM"><div class="key-label">CAM<br>6</div><div class="sdr-func">Preset 6</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">VIDEO<br>ONLY</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="preset" data-tip="FM Broadcast — 88.1 MHz WFM"><div class="key-label">CAM<br>1</div><div class="sdr-func">Preset 1</div></div>
+          <div class="key" data-cat="preset" data-tip="Air Guard — 121.5 MHz AM"><div class="key-label">CAM<br>2</div><div class="sdr-func">Preset 2</div></div>
+          <div class="key" data-cat="preset" data-tip="APRS 2m — 144.39 MHz FM"><div class="key-label">CAM<br>3</div><div class="sdr-func">Preset 3</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">AUDIO<br>ONLY</div><div class="sdr-func">—</div></div>
+        </div>
+        <div class="stop-play">
+          <div class="key" data-cat="scan" data-tip="Stop scanning"><div class="key-label">STOP/PLAY</div><div class="sdr-func">Stop scan</div></div>
+        </div>
+      </div>
+
+      <!-- ── Right side ─────────────────────────── -->
+      <div class="section section-right">
+        <div class="source-timeline-row">
+          <div class="key" data-cat="scan" data-tip="Start scan reverse (down)"><div class="key-label">SOURCE</div><div class="sdr-func">Scan ◀</div></div>
+          <div class="key" data-cat="scan" data-tip="Start scan forward (up)"><div class="key-label">TIMELINE</div><div class="sdr-func">Scan ▶</div></div>
+        </div>
+        <div class="jog-mode-row">
+          <div class="key" data-cat="tune" data-tip="Switch wheel to shuttle: ±25 kHz/tick"><div class="key-label">SHTL</div><div class="sdr-func">25 kHz</div></div>
+          <div class="key" data-cat="tune" data-tip="Switch wheel to jog: ±1 kHz/tick"><div class="key-label">JOG</div><div class="sdr-func">1 kHz</div></div>
+          <div class="key" data-cat="tune" data-tip="Switch wheel to scroll: ±100 kHz/tick"><div class="key-label">SCRL</div><div class="sdr-func">100 kHz</div></div>
+        </div>
+        <div class="jog-wheel">
+          <div class="wheel-circle">
+            <div class="wheel-label">JOG<br>WHEEL</div>
+            <div class="wheel-func">Tune VFO<br>±step Hz</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- editor-grid -->
+  </div><!-- editor-housing -->
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-tune)"></div>Tuning</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-preset)"></div>Presets</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-scan)"></div>Scanning</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-mode)"></div>Mode / BW</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-unused)"></div>Not mapped</div>
+  </div>
+
+</div><!-- guide-wrapper -->
+</div><!-- panel-python -->
+
+
+<!-- ================================================================== -->
+<!-- C++ NATIVE PLUGIN GUIDE                                            -->
+<!-- ================================================================== -->
+<div id="panel-native" class="guide-panel">
+<div class="guide-wrapper">
+  <div class="panel-title">speed_editor_ctrl — Native C++ SDR++ Plugin</div>
+  <div class="panel-subtitle">Full SDR++ internal API access — waterfall, VFO, recording, squelch, volume, LED feedback</div>
+
+  <div class="editor-housing">
+    <div class="editor-label">DAVINCI RESOLVE SPEED EDITOR</div>
+    <div class="editor-label editor-label-right">Blackmagic</div>
+
+    <div class="editor-grid">
+
+      <!-- ── Top-left edit block ────────────────── -->
+      <div class="section section-edit">
+        <div class="key-grid">
+          <div class="key" data-cat="unused"><div class="key-label">SMART<br>INSRT</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">APPND</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">RIPL<br>O/WR</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="modifier" data-tip="Modifier: hold + CAM=store, +SCRL=pan, +TRIM=fine BW"><div class="key-label">CLOSE<br>UP</div><div class="key-sublabel">YPOS</div><div class="sdr-func">Modifier</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">PLACE<br>ON TOP</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SRC<br>O/WR</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="vfo" data-tip="Decrease VFO bandwidth (CLOSE UP = fine 100 Hz)"><div class="key-label">TRIM<br>IN</div><div class="key-sublabel">CLR</div><div class="sdr-func">BW −</div></div>
+          <div class="key" data-cat="vfo" data-tip="Increase VFO bandwidth (CLOSE UP = fine 100 Hz)"><div class="key-label">TRIM<br>OUT</div><div class="key-sublabel">CLR</div><div class="sdr-func">BW +</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">ROLL</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SLIP<br>SRC</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">SLIP<br>DEST</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="unused"><div class="key-label">TRANS<br>DUR</div><div class="key-sublabel">SLIDE</div><div class="sdr-func">—</div></div>
+          <div class="key" data-cat="record" data-tip="Toggle recording start/stop (LED blinks)"><div class="key-label">CUT</div><div class="key-sublabel">SET</div><div class="sdr-func">Record</div></div>
+          <div class="key" data-cat="view" data-tip="Cycle waterfall colour map"><div class="key-label">DIS</div><div class="sdr-func">Colour map</div></div>
+          <div class="key" data-cat="mode" data-tip="Toggle squelch on/off"><div class="key-label">SMTH<br>CUT</div><div class="sdr-func">Squelch</div></div>
+        </div>
+      </div>
+
+      <!-- ── Bottom-left IN / OUT ───────────────── -->
+      <div class="section section-io">
+        <div class="key-grid">
+          <div class="key white-key" data-cat="scan" data-tip="Set current freq as scan lower bound"><div class="key-label">IN</div><div class="sdr-func">Scan low</div></div>
+          <div class="key white-key" data-cat="scan" data-tip="Set current freq as scan upper bound"><div class="key-label">OUT</div><div class="sdr-func">Scan high</div></div>
+        </div>
+      </div>
+
+      <!-- ── Top centre: ESC row + TRANS row ────── -->
+      <div class="section section-centre-top">
+        <div class="key-grid">
+          <div class="key" data-cat="tune" data-tip="Recall previous frequency (undo last tune)"><div class="key-label">ESC</div><div class="key-sublabel">UNDO</div><div class="sdr-func">Recall freq</div></div>
+          <div class="key" data-cat="reserved" data-tip="Reserved: future snap VFO to nearest signal peak"><div class="key-label">SYNC<br>BIN</div><div class="sdr-func">Reserved</div></div>
+          <div class="key" data-cat="tune" data-tip="Switch jog wheel to volume control mode"><div class="key-label">AUDIO<br>LEVEL</div><div class="key-sublabel">MARK</div><div class="sdr-func">Vol mode</div></div>
+          <div class="key red-key" data-cat="view" data-tip="Reset waterfall zoom to full sample bandwidth"><div class="key-label">FULL<br>VIEW</div><div class="key-sublabel">RVW</div><div class="sdr-func">Full zoom</div></div>
+          <div class="key" data-cat="mode" data-tip="Cycle: WFM→FM→AM→USB→LSB→CW→DSB→RAW"><div class="key-label">TRANS</div><div class="key-sublabel">TITLE</div><div class="sdr-func">Cycle mode</div></div>
+          <div class="key" data-cat="vfo" data-tip="Create a new VFO at current frequency"><div class="key-label">SPLIT</div><div class="key-sublabel">MOVE</div><div class="sdr-func">New VFO</div></div>
+          <div class="key" data-cat="tune" data-tip="Round freq to nearest configurable grid step"><div class="key-label">SNAP</div><div class="sdr-func">Snap grid</div></div>
+          <div class="key" data-cat="vfo" data-tip="Delete the currently selected VFO"><div class="key-label">RIPL<br>DEL</div><div class="sdr-func">Del VFO</div></div>
+        </div>
+      </div>
+
+      <!-- ── CAM grid + STOP/PLAY ───────────────── -->
+      <div class="section section-cam">
+        <div class="cam-grid">
+          <div class="key" data-cat="preset" data-tip="Preset 7 (CLOSE UP + CAM 7 = store)"><div class="key-label">CAM<br>7</div><div class="sdr-func">Preset 7</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 8 (CLOSE UP + CAM 8 = store)"><div class="key-label">CAM<br>8</div><div class="sdr-func">Preset 8</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 9 (CLOSE UP + CAM 9 = store)"><div class="key-label">CAM<br>9</div><div class="sdr-func">Preset 9</div></div>
+          <div class="key" data-cat="reserved" data-tip="Reserved: future toggle tuning mode"><div class="key-label">LIVE<br>O/WR</div><div class="key-sublabel">RND</div><div class="sdr-func">Reserved</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 4 (CLOSE UP + CAM 4 = store)"><div class="key-label">CAM<br>4</div><div class="sdr-func">Preset 4</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 5 (CLOSE UP + CAM 5 = store)"><div class="key-label">CAM<br>5</div><div class="sdr-func">Preset 5</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 6 (CLOSE UP + CAM 6 = store)"><div class="key-label">CAM<br>6</div><div class="sdr-func">Preset 6</div></div>
+          <div class="key" data-cat="reserved" data-tip="Reserved: future toggle waterfall display"><div class="key-label">VIDEO<br>ONLY</div><div class="sdr-func">Reserved</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 1 (CLOSE UP + CAM 1 = store)"><div class="key-label">CAM<br>1</div><div class="sdr-func">Preset 1</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 2 (CLOSE UP + CAM 2 = store)"><div class="key-label">CAM<br>2</div><div class="sdr-func">Preset 2</div></div>
+          <div class="key" data-cat="preset" data-tip="Preset 3 (CLOSE UP + CAM 3 = store)"><div class="key-label">CAM<br>3</div><div class="sdr-func">Preset 3</div></div>
+          <div class="key" data-cat="mode" data-tip="Toggle squelch enable (workaround for mute)"><div class="key-label">AUDIO<br>ONLY</div><div class="sdr-func">Mute</div></div>
+        </div>
+        <div class="stop-play">
+          <div class="key" data-cat="scan" data-tip="Stop scan if active, or toggle source start/stop"><div class="key-label">STOP/PLAY</div><div class="sdr-func">Source ▶/■ · Stop scan</div></div>
+        </div>
+      </div>
+
+      <!-- ── Right side ─────────────────────────── -->
+      <div class="section section-right">
+        <div class="source-timeline-row">
+          <div class="key" data-cat="scan" data-tip="Start scan reverse (down in frequency)"><div class="key-label">SOURCE</div><div class="sdr-func">Scan ◀</div></div>
+          <div class="key" data-cat="scan" data-tip="Start scan forward (up in frequency)"><div class="key-label">TIMELINE</div><div class="sdr-func">Scan ▶</div></div>
+        </div>
+        <div class="jog-mode-row">
+          <div class="key" data-cat="tune" data-tip="Switch wheel to shuttle: ±25 kHz/tick"><div class="key-label">SHTL</div><div class="sdr-func">25 kHz</div></div>
+          <div class="key" data-cat="tune" data-tip="Switch wheel to jog: ±100 Hz/tick"><div class="key-label">JOG</div><div class="sdr-func">100 Hz</div></div>
+          <div class="key" data-cat="view" data-tip="Switch wheel to scroll: waterfall zoom ±10%/tick"><div class="key-label">SCRL</div><div class="sdr-func">WF zoom</div></div>
+        </div>
+        <div class="jog-wheel">
+          <div class="wheel-circle">
+            <div class="wheel-label">JOG<br>WHEEL</div>
+            <div class="wheel-func">Tune / Zoom<br>/ Volume</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- editor-grid -->
+  </div><!-- editor-housing -->
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-tune)"></div>Tuning</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-preset)"></div>Presets</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-scan)"></div>Scanning</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-mode)"></div>Mode / Squelch</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-view)"></div>Waterfall / View</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-record)"></div>Recording</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-vfo)"></div>VFO Mgmt</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-modifier)"></div>Modifier</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-reserved)"></div>Reserved</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-unused)"></div>Not mapped</div>
+  </div>
+
+</div><!-- guide-wrapper -->
+</div><!-- panel-native -->
+
+
+<!-- ── Capability Comparison ──────────────────── -->
+<div class="comparison">
+  <h3>Feature Comparison</h3>
+  <table class="comp-table">
+    <thead>
+      <tr><th>Capability</th><th>Python Bridge</th><th>C++ Plugin</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Tune VFO frequency</td><td class="yes">✓ rigctl F</td><td class="yes">✓ tuner::tune()</td></tr>
+      <tr><td>Set demod mode + passband</td><td class="yes">✓ rigctl M</td><td class="yes">✓ modComManager</td></tr>
+      <tr><td>9 frequency presets (CAM 1–9)</td><td class="yes">✓ config.yaml</td><td class="yes">✓ config.json</td></tr>
+      <tr><td>Store presets (CLOSE UP + CAM)</td><td class="no">✗</td><td class="yes">✓</td></tr>
+      <tr><td>Frequency scanning</td><td class="yes">✓ loop F</td><td class="yes">✓ native scan</td></tr>
+      <tr><td>Scan bounds (IN / OUT)</td><td class="no">✗ log only</td><td class="yes">✓</td></tr>
+      <tr><td>Waterfall zoom / pan</td><td class="no">✗</td><td class="yes">✓ SCRL mode</td></tr>
+      <tr><td>Source start / stop</td><td class="no">✗</td><td class="yes">✓ STOP/PLAY</td></tr>
+      <tr><td>Recording start / stop</td><td class="no">✗</td><td class="yes">✓ CUT</td></tr>
+      <tr><td>Squelch toggle</td><td class="no">✗</td><td class="yes">✓ SMTH CUT</td></tr>
+      <tr><td>Audio mute</td><td class="no">✗</td><td class="yes">✓ AUDIO ONLY</td></tr>
+      <tr><td>VFO bandwidth adjust</td><td class="yes">✓ ±500 Hz</td><td class="yes">✓ configurable</td></tr>
+      <tr><td>Create / delete VFOs</td><td class="no">✗</td><td class="yes">✓ SPLIT / RIPL DEL</td></tr>
+      <tr><td>Waterfall colour map</td><td class="no">✗</td><td class="yes">✓ DIS</td></tr>
+      <tr><td>Full-bandwidth view reset</td><td class="no">✗</td><td class="yes">✓ FULL VIEW</td></tr>
+      <tr><td>LED feedback from SDR++ state</td><td class="no">✗ local only</td><td class="yes">✓ live state</td></tr>
+      <tr><td>CLOSE UP modifier key</td><td class="no">✗</td><td class="yes">✓</td></tr>
+      <tr><td>Buttons mapped</td><td>13 of 34</td><td>27 of 34</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.guide-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
