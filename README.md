@@ -129,6 +129,9 @@ Then reload: `sudo udevadm control --reload-rules && sudo udevadm trigger`
 davinci_speed_editor.py     HID driver — auth, read, LEDs, event types
 sdrpp_bridge.py             SDR++ bridge — rigctl TCP client + mapping
 config.yaml                 Default presets, step sizes, mode list
+plugin/                     Native C++ SDR++ plugin (out-of-tree build)
+  CMakeLists.txt            Out-of-tree cmake config
+  src/                      Plugin source (HID driver, key map, main module)
 PLAN-sdrpp-speed-editor.md  Phase 1 bridge design + overall architecture
 PLAN-native-plugin.md       Phase 2 native C++ plugin detailed plan
 README.md                   This file
@@ -141,24 +144,54 @@ LICENSE.txt                 BSD 3-Clause
 |---|---|---|
 | HID driver | ✅ Done | Auth, read, LEDs, structured events, verified keycodes |
 | SDR++ rigctl bridge | ✅ Done | Python daemon maps Speed Editor → SDR++ via rigctl TCP |
-| Native C++ plugin | 📋 Planned | `misc_module` for waterfall zoom/pan, gain, bandwidth, recording, VFO management |
+| Native C++ plugin | 🔧 In progress | `misc_module` for waterfall zoom/pan, gain, bandwidth, recording, VFO management |
 
 The native plugin will unlock everything rigctl can't reach — waterfall control, direct VFO bandwidth, source start/stop, recording, squelch, volume, and full LED feedback from live SDR++ state. See [PLAN-native-plugin.md](PLAN-native-plugin.md) for the detailed design.
 
-## Building the native plugin (future)
+## Building the native plugin
 
-The C++ plugin builds in-tree with SDR++. Additional dependency: `hidapi`.
+The C++ plugin builds **out-of-tree** against an existing SDR++ source tree and build directory.
 
-**macOS:** `brew install hidapi`
-**Linux:** `sudo apt install libhidapi-dev`
+### Prerequisites
+
+1. **SDR++ source and build** — clone and build [SDR++](https://github.com/AlexandreRouma/SDRPlusPlus) following its own instructions:
+
+   ```bash
+   git clone https://github.com/AlexandreRouma/SDRPlusPlus.git ~/SDRPlusPlus
+   cd ~/SDRPlusPlus
+   mkdir build && cd build
+   cmake .. -DCMAKE_BUILD_TYPE=Release
+   make -j$(nproc)
+   ```
+
+2. **hidapi** — the plugin uses `hidapi-libusb` for HID communication:
+
+   **Linux:** `sudo apt install libhidapi-dev`
+   **macOS:** `brew install hidapi`
+
+### Build
 
 ```bash
-cd SDRPlusPlus/build
-cmake .. -DOPT_BUILD_SPEED_EDITOR_CTRL=ON -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc) speed_editor_ctrl
+cd plugin
+cmake -B build \
+      -DSDRPP_SOURCE=$HOME/SDRPlusPlus \
+      -DSDRPP_BUILD=$HOME/SDRPlusPlus/build
+cmake --build build
 ```
 
-See [PLAN-native-plugin.md](PLAN-native-plugin.md) for full build instructions, platform notes, and development milestones.
+This produces `plugin/build/speed_editor_ctrl.so`. Adjust `SDRPP_SOURCE` and `SDRPP_BUILD` if your SDR++ lives elsewhere.
+
+### Install
+
+Copy the built plugin into your SDR++ modules directory:
+
+```bash
+cp plugin/build/speed_editor_ctrl.so ~/.config/sdrpp/modules/
+```
+
+Then restart SDR++ and load `speed_editor_ctrl` from **Module Manager**.
+
+See [PLAN-native-plugin.md](PLAN-native-plugin.md) for the detailed plugin design and development milestones.
 
 ## License
 
