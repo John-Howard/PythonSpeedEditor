@@ -35,7 +35,7 @@ The Speed Editor is a USB HID controller with a weighted jog wheel, shuttle ring
 - **Out-of-tree `misc_module`** — builds against an existing SDR++ source tree (Linux)
 - **Direct API access** — waterfall zoom/pan, gain, bandwidth, recording, VFO management
 - **Full HID driver in C++** — authentication, jog wheel, buttons, and LED control without Python
-- **See [Button layout guide](docs/speed_editor_guides.html)** for a visual reference of all control mappings
+- **See [Button layout guide](https://john-howard.github.io/PythonSpeedEditor/)** for a visual reference of all control mappings
 
 ## Requirements
 
